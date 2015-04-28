@@ -1,0 +1,35 @@
+<!--  This is the body view of the users page  -->
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">Users</div>
+        <?php
+
+        echo '<table class="table">';
+        echo '<tr>';
+        echo '<th>Name</th>';
+        echo '<th>Username</th>';
+        echo '<th>Email</th>';
+        echo '<th>Lecturer/Student</th>';
+        echo '<th>Change Permission</th>';
+        echo '</tr>';
+        foreach ($users as $user) {
+
+            echo '<tr>';
+            echo '<td>' . $user->first_name . ' ' . $user->last_name . '</td>';
+            echo '<td>' . $user->username . '</td>';
+            echo '<td>' . $user->email . '</td>';
+            if ($user->lecturer == 0) {
+                echo '<td>Student</td>';
+                echo '<td><a class="btn btn-danger" href="' . base_url() . 'index.php/users/changeLecturer/' . $user->user_id . '/' . $user->lecturer . '">Change to Lecturer</a></td>';
+            } else {
+                echo '<td>Lecturer</td>';
+                echo '<td><a class="btn btn-danger" href="' . base_url() . 'index.php/users/changeLecturer/' . $user->user_id . '/' . $user->lecturer . '">Change to Student</a></td>';
+            }
+            echo '</tr>';
+        }
+        echo '</table>';
+        ?>
+        <br>
+    </div>
+</div>
+<br>

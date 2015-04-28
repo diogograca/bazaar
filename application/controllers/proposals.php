@@ -1,0 +1,81 @@
+<!--
+
+This Controller is available at index.php/proposals
+
+This Controllers is responsible to displays all Lecturer Proposals with pagination
+
+-->
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class Proposals
+ */
+class Proposals extends CI_Controller {
+
+    /**
+     *loads the models globally, making it available in all functions, so there's no need to load the model multiple times
+     */
+    public function __construct() {
+
+        parent::__construct();
+
+        $this->load->model('proposals_model');
+        $this->load->library("pagination");
+        $this->load->helper('text');
+    }
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index(){
+
+        $data['title'] = 'Proposals';
+        //pagination configuration
+        $config = array();
+        $config["base_url"] = site_url("/proposals");
+        $config["total_rows"] = $this->proposals_model->record_count();
+        $config["per_page"] = 4;
+        $config["uri_segment"] = 2;
+        /* Configuration to integrate paginantion style of BootStrap  */
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] ="</ul>";
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = "<li class='disabled'><li class='active'><a href='#'>";
+        $config['cur_tag_close'] = "<span class='sr-only'></span></a></li>";
+        $config['next_tag_open'] = "<li>";
+        $config['next_tagl_close'] = "</li>";
+        $config['prev_tag_open'] = "<li>";
+        $config['prev_tagl_close'] = "</li>";
+        $config['first_tag_open'] = "<li>";
+        $config['first_tagl_close'] = "</li>";
+        $config['last_tag_open'] = "<li>";
+        $config['last_tagl_close'] = "</li>";
+
+
+        $this->pagination->initialize($config);
+        // if segment is NULL then we are on first page, therefore return 0
+        $page = ( $this->uri->segment( 2 ) ) ? $this->uri->segment( 2 ) : 0;
+        $data['segment'] =  $this->uri->segment(1);
+        $data["proposals"] = $this->proposals_model->get_proposals($config["per_page"], $page);
+        $data["links"] = $this->pagination->create_links();
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('proposals_view', $data);
+        $this->load->view('templates/footer');
+    }
+
+    /**
+     *This functions handles the search query and query the database
+     */
+    public function searchResults(){
+
+        $search = $this->input->post('search_terms');
+        $data['title'] = 'Search Results';
+        $data['results'] = $this->proposals_model->searchProposals($search);
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('proposals_search_view', $data);
+        $this->load->view('templates/footer');
+    }
+}

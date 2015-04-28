@@ -1,0 +1,62 @@
+<!--
+
+This Controller is available at index.php/StudentInterests
+
+This Controllers is responsible to showing student interests in a proposal
+
+-->
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class StudentInterests
+ */
+class StudentInterests extends CI_Controller
+{
+
+    /**
+     *loads the model globally, making it available in all functions, so there's no need to load the model multiple times
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->load->model('proposals_model');
+    }
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index()
+    {
+
+        $id = $this->uri->segment(2);
+        $auth = $this->proposals_model->checkAuth($id);
+        //gets the user_id of the proposal
+        if ($auth) {
+            $auth = $auth[0]->user_id;
+        } else {
+            $auth = 0;
+        }
+
+        $user = $this->session->userdata('user_id');
+        //This checks if the user accessing the webpage is the owner of the proposal, prevents url tampering
+        if ($auth == $user) {
+
+            $data['title'] = 'Student Interests';
+            $data['interests'] = $this->proposals_model->studentInterest($id);
+
+            $this->load->view('templates/header', $data);
+            $this->load->view('student_interests_view', $data);
+            $this->load->view('templates/footer');
+        } else {
+
+            $data['title'] = 'Access Denied';
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('access_denied_view');
+            $this->load->view('templates/footer');
+        }
+
+    }
+
+}

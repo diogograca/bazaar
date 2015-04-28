@@ -1,0 +1,256 @@
+<!--
+This Model is responsible to handling the proposals, such as getting a specific proposal, handling pagination,
+search proposals, editing and deleting Lecturer Proposals
+-->
+<?php
+
+/**
+ * Class Proposals_model
+ */
+class Proposals_model extends CI_Model
+{
+
+    /**
+     *calls the constructor
+     */
+    function _construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * This function returns the information of a specific proposal, and joins with the user table to find the author of that proposal
+     *
+     * @param $id
+     * @return null
+     */
+    public function getProposal($id)
+    {
+
+        $this->db->from('proposals');
+        $this->db->join('users', 'proposals.user_id = users.user_id');
+        $this->db->where('proposal_id', $id);
+        $sql = $this->db->get();
+
+        if ($sql->num_rows() === 1) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+
+
+    /**
+     * This function returns the profile of the owner of the proposal
+     *
+     * @param $id
+     * @return null
+     */
+    public function getOwnerProfile($id)
+    {
+        $this->db->select('profiles.profile_id');
+        $this->db->from('proposals');
+        $this->db->join('profiles', 'proposals.user_id = profiles.lecturer_id');
+        $this->db->where('proposal_id', $id);
+        $sql = $this->db->get();
+
+        if ($sql->num_rows() === 1) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function counts how many proposals are in the proposals table so it can be used for the pagination
+     *
+     * @return mixed
+     */
+    public function record_count()
+    {
+        return $this->db->count_all("proposals");
+    }
+
+    /**
+     * This function receives 2 parameters with determine how many records to return and where to start from, used for pagination
+     *
+     * @param $limit
+     * @param $start
+     * @return array|bool
+     */
+    public function get_proposals($limit, $start)
+    {
+        $this->db->limit($limit, $start);
+        $query = $this->db->get("proposals");
+
+        if ($query->num_rows() > 0) {
+            foreach ($query->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return false;
+    }
+
+    /**
+     * This functions queries the proposal_description and proposal_title columns from proposals with the search terms and returns the result
+     *
+     * @param $search
+     * @return array|null
+     */
+    public function searchProposals($search)
+    {
+
+        $this->db->like('proposal_description', $search);
+        $this->db->or_like('proposal_title', $search);
+        $sql = $this->db->get("proposals");
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function returns all proposals that belongs to the user that is logged in
+     *
+     * @param $limit
+     * @param $start
+     * @return array|null
+     */
+    public function LecturerProposals($limit, $start)
+    {
+
+        $id = $this->session->userdata('user_id');
+        $this->db->where('user_id', $id);
+        $this->db->limit($limit, $start);
+        $sql = $this->db->get('proposals');
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function returns all interests in a project
+     *
+     * @param $id
+     * @return array|null
+     */
+    public function studentInterest($id)
+    {
+
+        $this->db->select('first_name, last_name, email');
+        $this->db->join('users', 'proposal_interests.user_id = users.user_id');
+        $this->db->where('proposal_id', $id);
+        $sql = $this->db->get('proposal_interests');
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+
+    }
+
+    /**
+     * THis function retrieves the user id of the proposal so it can be used for authorization
+     *
+     * @param $id
+     * @return null
+     */
+    public function checkAuth($id)
+    {
+        $this->db->select('user_id');
+        $this->db->where('proposal_id', $id);
+        $sql = $this->db->get('proposals');
+
+        if ($sql->num_rows() === 1) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function takes one variable which is the id of the proposal, and returns the proposal so it can be edit by the Lecturer
+     *
+     * @param $id
+     * @return null
+     */
+    public function getLecturerProposals($id)
+    {
+        $this->db->where('proposal_id', $id);
+        $sql = $this->db->get('proposals');
+
+        if ($sql->num_rows() === 1) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function takes two variables which updates a proposal, it takes the proposal id and the data that needs to be updated
+     *
+     * @param $id
+     * @param $data
+     * @return bool
+     */
+    public function editLecturerProposal($id, $data)
+    {
+
+        $this->db->where('proposal_id', $id);
+        $this->db->update('proposals', $data);
+
+        if ($this->db->affected_rows() === 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * This function takes the proposal id and deletes that proposal from the proposals table
+     *
+     * @param $id
+     * @return bool
+     */
+    public function deleteLecturerProposal($id)
+    {
+
+        $this->db->where('proposal_id', $id);
+        $this->db->delete('proposals');
+
+        if ($this->db->affected_rows() === 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Counts how many proposals belongs to a lecturer, used for pagination
+     *
+     * @return mixed
+     */
+    public function record_count_project()
+    {
+
+        $user_id = $this->session->userdata('user_id');
+        $this->db->where('user_id', $user_id);
+        return $this->db->count_all_results("proposals");
+    }
+}

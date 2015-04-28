@@ -1,0 +1,69 @@
+<!--
+
+This Controller is available at index.php/register
+
+This Controllers is responsible to handling the User Registration
+
+-->
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class Register
+ */
+class Register extends CI_Controller
+{
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index()
+    {
+
+        $data['title'] = 'Register New User';
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('register_account_view');
+        $this->load->view('templates/footer');
+    }
+
+    /**
+     *This functions handles the registration form, performing validation and inserting the user into the database
+     */
+    public function create_account()
+    {
+        //form validation, this allows to check if the user has inserted valid data without having to send a SQL request
+        $this->form_validation->set_rules('first_name', 'First Name', 'trim|required|min_length[3]|max_length[30]|xss_clean');
+        $this->form_validation->set_rules('last_name', 'Last Name', 'trim|required|min_length[3]|max_length[30]|xss_clean');
+        $this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[3]|max_length[30]|is_unique[users.username]|xss_clean');
+        $this->form_validation->set_rules('email', 'Email', 'trim|required|min_length[6]|max_length[60]|valid_email|is_unique[users.email]|xss_clean');
+        $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[6]|max_length[50]|matches[password_confirmation]|xss_clean');
+        $this->form_validation->set_rules('password_confirmation', 'Confirmed Password', 'trim|required|min_length[6]|max_length[50]|xss_clean');
+        // If there are errors go back to the Register account view and displays the errors
+        if ($this->form_validation->run() == FALSE) {
+
+            $data['title'] = 'Register New User';
+
+            $this->load->view('templates/header', $data);
+            $this->load->view('register_account_view');
+            $this->load->view('templates/footer');
+        } else {
+            //If validation is TRUE, loads the model
+            $this->load->model('create_user_model');
+            $result = $this->create_user_model->create_user();
+            //If insertion in the database base is successful, loads the register_successfully_view
+            if ($result) {
+
+                $username = $this->session->userdata('username');
+                redirect('/profile/' . $username);
+            } else {
+                //This should never happen as validation is done prior to sending the request to the model
+                $data['title'] = 'Registration Failed';
+
+                $this->load->view('templates/header', $data);
+                $this->load->view('register_failed_view');
+                $this->load->view('templates/footer');
+            }
+        }
+    }
+}
+

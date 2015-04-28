@@ -1,0 +1,96 @@
+<!--
+This Model is responsible to handling the creation of student and lecturers proposals
+-->
+<?php
+
+/**
+ * Class Proposal_create_model
+ */
+class Proposal_create_model extends CI_Model
+{
+
+    /**
+     *calls the constructor
+     */
+    function _construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * This functions inserts the proposal into the proposals table
+     *
+     * @return bool
+     */
+    function create_proposal()
+    {
+        //grabs the values from the POST array
+        $title = $this->input->post('title');
+        $description = $this->input->post('description');
+        $user = $this->session->userdata('user_id');
+        $data = array(
+            'user_id' => $user,
+            'proposal_title' => $title ,
+            'proposal_description' => $description
+        );
+
+        $this->db->insert('proposals',$data);
+
+        //If insertion is successfully returns true
+        if ($this->db->affected_rows() === 1) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+    /**
+     *  This functions inserts the proposal into the student_proposal table
+     *
+     * @return bool
+     */
+    public function student_proposal()
+    {
+        //grabs the values from the POST array
+        $title = $this->input->post('title');
+        $description = $this->input->post('description');
+        $user = $this->session->userdata('user_id');
+        $lecturer = $this->input->post('lecturer');
+
+        $data = array(
+            'student_id' => $user,
+            'lecturer_id' => $lecturer,
+            'student_proposal_title' => $title ,
+            'student_proposal_description' => $description
+        );
+
+        $this->db->insert('student_proposal',$data);
+        //If insertion is successfully returns true
+        if ($this->db->affected_rows() === 1) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+
+    /**
+     * This function is responsible to return all Lecturers so it is displayed in a select box in the view of the student proposal
+     *
+     * @return result|null
+     */
+    public function  getNames()
+    {
+        $this->db->select('user_id,first_name,last_name');
+        $this->db->from('users');
+        $this->db->where('lecturer', 1);
+        $sql = $this->db->get();
+
+        if ($sql->num_rows() > 0) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+}
+

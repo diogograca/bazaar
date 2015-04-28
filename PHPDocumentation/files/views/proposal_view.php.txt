@@ -1,0 +1,51 @@
+<!--  This is the body view of proposal page   -->
+<div class="container">
+    <section class="proposal">
+        <?php
+
+        foreach ($proposal as $object) {
+            $firstname = $object->first_name;
+            $lastname = $object->last_name;
+            $proposal_id = $object->proposal_id;
+            $name = $firstname . ' ' . $lastname;
+            $name = ucwords($name);
+
+            echo '<h1>Proposal Title: ' . $object->proposal_title . '</h1>';
+            echo '<h3>Proposal description</h3>';
+            echo '<p>' . $object->proposal_description . '</p><br/>';
+
+            if ($profile) {
+                echo '<p><strong>Lecturer Name:</strong> <a href="' . base_url() . "index.php/lecturerProfile/" . $profile[0]->profile_id . '">' . $name . '</a></p><br/>';
+            } else {
+                echo '<p><strong>Lecturer Name:</strong>' . $name . ' <small>(This Lecturer does not have a profile set up yet!)</small></p><br/>';
+            }
+
+            $logged_in = $this->session->userdata('loggedin');
+            $lecturer = $this->session->userdata('lecturer');
+            $admin = $this->session->userdata('admin');
+            // If the user is logged in , allow him to submit an interest for this project, otherwise alerts the user to login
+            //only allow students to submit interest
+            if ($logged_in) {
+
+                if ($lecturer == 1 || $admin == 1) {
+                    echo '<p>Only students can express an interest in a project</p><br>';
+                } else {
+
+                    ?>
+                    <form method="POST" action="<?php echo base_url(); ?>index.php/Proposal/proposal_interest">
+                        <input class="btn btn-success" type="submit" name="submit" value="I'm interrested!">
+                        <input type="hidden" name="proposal_id" value="<?php echo $proposal_id ?>">
+                    </form>
+                <?php
+                }
+            } else {
+                echo '<p>Please login in order to submit your interest for this project</p>';
+            }
+        }
+        ?>
+        <br/>
+        <a class="btn btn-info" href="<?php echo base_url(); ?>index.php/proposals">Back to Proposals</a>
+    </section>
+</div>
+
+

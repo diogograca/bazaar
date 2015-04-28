@@ -1,0 +1,89 @@
+<!--  This is the body view of the edit profile page   -->
+<div class="container">
+    <div class="page-header">
+        <h1>Edit Profile</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <?php
+        //There will be no result if the user is on the edit page and the changes made doesn't passes on the form validation, therefore just echo the values sent on the POST
+        if ($result) {
+            foreach ($result as $profile) {
+
+        ?>
+
+            <form method="POST" action="<?php echo base_url(); ?>index.php/editProfile/edit_profile">
+                <div class="col-md-6">
+                    <label for="description">Description: </label>
+                    <br>
+                            <textarea rows="20" cols="60"
+                                      name="description"><?php echo $profile->profile_description; ?></textarea>
+                    <br>
+                </div>
+                <div class="col-md-6">
+                    <label for="areas">Specialist Areas: </label>
+                    <br>
+                    <textarea rows="20" cols="60" name="areas"><?php echo $profile->specialist_areas; ?></textarea>
+                    <br>
+                </div>
+        </div>
+        <label for="support">Can you support projects?</label>
+        <?php
+        if ($profile->support_projects == 'Yes') {
+            echo '<input type="radio" name="support" value="Yes" checked>Yes';
+            echo '<input type="radio" name="support" value="No">No';
+        } else {
+            echo '<input type="radio" name="support" value="Yes">Yes';
+            echo '<input type="radio" name="support" value="No" checked>No';
+        }
+        ?>
+        <br>
+        <input type="hidden" name="profile_id" value="<?php echo $profile->profile_id; ?>"/>
+        <input class="btn btn-primary" type="submit" value="Edit profile"/>
+        </form>
+        <?php
+        }
+    } else {
+    ?>
+        <form method="POST" action="<?php echo base_url(); ?>index.php/editProfile/edit_profile">
+            <div class="col-md-6">
+                <label for="description">Description: </label>
+                <br>
+                <textarea rows="20" cols="60" name="description"><?php echo set_value('description'); ?></textarea>
+                <br>
+            </div>
+            <div class="col-md-6">
+                <label for="areas">Specialist Areas: </label>
+                <br>
+                <textarea rows="20" cols="60" name="areas"><?php echo set_value('areas'); ?></textarea>
+                <br>
+            </div>
+        </div>
+        <label for="support">Can you support projects?</label>
+        <?php
+
+        $profile_id = $_POST['profile_id'];
+
+        if ($_POST['support'] == 'Yes') {
+            echo '<input type="radio" name="support" value="Yes" checked>Yes';
+            echo '<input type="radio" name="support" value="No">No';
+        } else {
+            echo '<input type="radio" name="support" value="Yes">Yes';
+            echo '<input type="radio" name="support" value="No" checked>No';
+        }
+        ?>
+        <br>
+        <input type="hidden" name="profile_id" value="<?php echo $profile_id; ?>"/>
+        <?php echo validation_errors(); ?>
+        <input class="btn btn-primary" type="submit" value="Edit profile"/>
+        </form>
+
+    <?php
+    }
+    ?>
+    <br>
+</div>
+<br>
+

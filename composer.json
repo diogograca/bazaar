@@ -1,0 +1,14 @@
+{
+    "name": "Diogo/bazaar",
+    "authors": [
+        {
+            "name": "Diogo Graca",
+            "email": "diogograca88@gmail.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {},
+    "require-dev": {
+    "phpdocumentor/phpdocumentor": "2.*"
+    }
+}

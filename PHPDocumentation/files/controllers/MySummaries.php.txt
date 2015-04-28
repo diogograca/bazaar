@@ -1,0 +1,221 @@
+<!--
+
+This Controller is available at index.php/myProposals
+
+This Controllers is responsible to manage the Actions on Lecturers Proposal, such as editing, deleting and confirming deletion
+
+-->
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class MySummaries
+ */
+class MySummaries extends CI_Controller
+{
+
+    /**
+     *loads the model globally, making it available in all functions, so there's no need to load the model multiple times
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->load->model('projects_summaries_model');
+        $this->load->library("pagination");
+        $this->load->helper('text');
+    }
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index()
+    {
+
+        $data['title'] = 'My Summaries';
+        //pagination configuration
+        $config = array();
+        $config["base_url"] = site_url("/MySummaries");
+        $config["total_rows"] = $this->projects_summaries_model->record_count_summary();
+        $config["per_page"] = 1;
+        $config["uri_segment"] = 2;
+        /* Configuration to integrate pagination style of BootStrap  */
+        $config['full_tag_open'] = "<ul class='pagination'>";
+        $config['full_tag_close'] = "</ul>";
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = "<li class='disabled'><li class='active'><a href='#'>";
+        $config['cur_tag_close'] = "<span class='sr-only'></span></a></li>";
+        $config['next_tag_open'] = "<li>";
+        $config['next_tagl_close'] = "</li>";
+        $config['prev_tag_open'] = "<li>";
+        $config['prev_tagl_close'] = "</li>";
+        $config['first_tag_open'] = "<li>";
+        $config['first_tagl_close'] = "</li>";
+        $config['last_tag_open'] = "<li>";
+        $config['last_tagl_close'] = "</li>";
+
+
+        $this->pagination->initialize($config);
+        // if segment is NULL then we are on first page, therefore return 0
+        $page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+        $data['segment'] = $this->uri->segment(1);
+        $data["summaries"] = $this->projects_summaries_model->LecturerSummaries($config["per_page"], $page);
+        $data["links"] = $this->pagination->create_links();
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('mySummaries_view', $data);
+        $this->load->view('templates/footer');
+    }
+
+    /**
+     * This functions handles the edition of a summary
+     */
+    public function editSummary()
+    {
+
+        $id = $this->uri->segment(3);
+
+        $auth = $this->projects_summaries_model->checkAuth($id);
+        //gets the user_id of the proposal
+        if ($auth) {
+            $auth = $auth[0]->user_id;
+        } else {
+            $auth = 0;
+        }
+
+        $user = $this->session->userdata('user_id');
+        //This checks if the user accessing the webpage is the owner of the proposal, prevents url tampering
+        if ($auth == $user) {
+
+            $this->load->helper('form');
+            $data['summary'] = $this->projects_summaries_model->get_Summary($id);
+            $data['title'] = 'Edit Summary';
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('edit_summary_view');
+            $this->load->view('templates/footer');
+        } else {
+
+            $data['title'] = 'Access Denied';
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('access_denied_view');
+            $this->load->view('templates/footer');
+        }
+    }
+
+    /**
+     *This function handles the edition of the information in the summary
+     */
+    public function applyChanges()
+    {
+        /*these 3 variables are used to created an unique image name
+        by using the session id, username and a random number (8-10 digits)
+        */
+        $username = $this->session->userdata('username');
+        $session_id = $this->session->userdata('session_id');
+        $img = mt_rand();
+        //upload configuration
+        $config['upload_path'] = './uploads/';
+        $config['file_name'] = $session_id . $username . $img;
+        $config['overwrite'] = FALSE;
+        $config['allowed_types'] = 'jpg|png';
+        $config['max_size'] = '2048000';
+        $config['max_width'] = '10240';
+        $config['max_height'] = '7680';
+
+        $this->load->library('upload', $config);
+
+        //form validation
+        $this->form_validation->set_rules('title', 'Title', 'trim|required|min_length[3]|max_length[255]|xss_clean');
+        $this->form_validation->set_rules('description', 'Description', 'trim|required|min_length[3]|max_length[16777215]|xss_clean'); //max length 2 to the of 24(medium text)
+        // If there are errors go back to the edit summary view and displays the errors
+        if ($this->form_validation->run() == FALSE) {
+
+            $data['title'] = 'Edit Summary';
+            //No need to fetch the data again, display the data from the POST array
+            //The reason not to fetch the data again as it if its an error in the validation, the data reloaded would be the old data
+            // from the db and not the one that the user has applied the changes
+            $data['summary'] = NULL;
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('edit_summary_view', $data);
+            $this->load->view('templates/footer');
+
+        } else {
+
+            $id = $this->input->post('summary_id');
+            $images = $this->projects_summaries_model->get_Summary($id);
+
+            /**
+             * uploads are optional, therefore check if any of the 3 images have been uploaded
+             * each file has to be uploaded individual as CodeIgniter does not support multiple uploads
+             *
+             * THe following functions first check if there's a file to be uploaded, if it is then it gets the file name
+             * and passes as a variable. If there isn't a file, it checks to see if a image is already uploaded into the
+             * database, if it is gets the image name and passes to the variable, if it isn't then gives it a empty
+             * value to prevent insertion errors
+             */
+            if (!$this->upload->do_upload('image')) {
+
+                if($images[0]->image == ''){
+                    $image = '';
+                }else{
+                    $image = $images[0]->image;
+                }
+            } else {
+                //gets the file name from the upload data
+                $data = $this->upload->data();
+                $image = $data['file_name'];
+            }
+
+            if (!$this->upload->do_upload('image2')) {
+
+                if($images[0]->image2 == ''){
+                    $image2 = '';
+                }else{
+                    $image2 = $images[0]->image2;
+                }
+            } else {
+                $data = $this->upload->data();
+                $image2 = $data['file_name'];
+            }
+
+            if (!$this->upload->do_upload('image3')) {
+                if($images[0]->image3 == ''){
+                    $image3 = '';
+                }else{
+                    $image3 = $images[0]->image3;
+                }
+            } else {
+                $data = $this->upload->data();
+                $image3 = $data['file_name'];
+            }
+
+            $title = $this->input->post('title');
+            $description = $this->input->post('description');
+            $data = array(
+                'project_title' => $title,
+                'project_summary' => $description,
+                'image' => $image,
+                'image2' => $image2,
+                'image3' => $image3
+            );
+            print_r($data);
+            $this->projects_summaries_model->editLecturerSummary($id, $data);
+
+            redirect('/MySummaries');
+        }
+    }
+
+    /**
+     *this functions handles the deletion of the project summary
+     */
+    public function deleteSummary()
+    {
+        $id = $this->uri->segment(3);
+        $this->projects_summaries_model->deleteLecturerSummary($id);
+        redirect('/MySummaries');
+    }
+
+}

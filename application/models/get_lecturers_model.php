@@ -1,0 +1,143 @@
+<!--
+This Model is responsible to returning all Lecturers Profiles and sorting the pagination,
+ This model also returns a specific Lecturer profile
+-->
+<?php
+
+/**
+ * Class Get_lecturers_model
+ */
+class Get_lecturers_model extends CI_Model
+{
+
+    /**
+     *calls the constructor
+     */
+    function _construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * This function returns all lectures Profiles
+     *
+     * @return array|null
+     */
+    public function getProfiles()
+    {
+
+        $this->db->join('users', 'users.user_id = profiles.lecturer_id');
+        $sql = $this->db->get('profiles');
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function counts how many profiles are in the profiles table so it can be used for the pagination
+     *
+     * @return mixed
+     */
+    public function record_count()
+    {
+
+        return $this->db->count_all("profiles");
+    }
+
+    /**
+     * This function receives 2 parameters with determine how many records to return and where to start from, used for pagination
+     *
+     * @param $limit
+     * @param $start
+     * @return array|bool
+     */
+    public function get_profiles($limit, $start)
+    {
+
+        $this->db->join('users', 'users.user_id = profiles.lecturer_id');
+        $this->db->limit($limit, $start);
+        $query = $this->db->get("profiles");
+
+        if ($query->num_rows() > 0) {
+            foreach ($query->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        }
+        return false;
+    }
+
+    /**
+     * This functions queries the profiles and users tables from the search terms and returns the result
+     *
+     * @param $search
+     * @return array|null
+     */
+    public function searchLecturers($search)
+    {
+
+        $this->db->join('users', 'users.user_id = profiles.lecturer_id');
+        $this->db->like('profiles.profile_description', $search);
+        $this->db->or_like('profiles.specialist_areas', $search);
+        $this->db->or_like('users.first_name', $search);
+        $this->db->or_like('users.last_name', $search);
+        $sql = $this->db->get("profiles");
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * This function receives 1 parameters which determines which profile to retrieve
+     *
+     * @param $id
+     * @return null
+     */
+    public function getProfile($id)
+    {
+
+        $this->db->join('users', 'users.user_id = profiles.lecturer_id');
+        $this->db->where('profile_id', $id);
+        $sql = $this->db->get('profiles');
+
+        if ($sql->num_rows() === 1) {
+            return $sql->result();
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * Get proposals that belongs to a lecturer
+     *
+     * @param $id
+     * @return array|null
+     */
+    public function lecturerProposals($lecturer_id)
+    {
+        $this->db->select('proposal_id, proposal_title');
+        $this->db->where('user_id', $lecturer_id);
+        $sql = $this->db->get('proposals');
+
+        if ($sql->num_rows() > 0) {
+            foreach ($sql->result() as $row) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            return NULL;
+        }
+    }
+}

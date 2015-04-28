@@ -1,0 +1,83 @@
+<!--
+
+This Controller is available at index.php/editProfile
+
+This Controllers is responsible to retrieve all the Lecturers Profiles, and controls the page pagination configuration
+
+-->
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class EditProfile
+ */
+class EditProfile extends CI_Controller
+{
+
+    /**
+     *Loads the models globally, making it available in all functions, so there's no need to load the model multiple times
+     */
+    public function __construct()
+    {
+
+        parent::__construct();
+
+        $this->load->model('edit_profile_model');
+    }
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index()
+    {
+
+        $data['result'] = $this->edit_profile_model->getProfile();
+        $data['title'] = 'Edit Profile';
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('edit_profile_view', $data);
+        $this->load->view('templates/footer');
+    }
+
+    /**
+     *This function handles the edition of the lecturer profile
+     */
+    public function edit_profile()
+    {
+
+        //form validation
+        $this->form_validation->set_rules('description', 'Description', 'trim|required|min_length[10]|max_length[65535]|xss_clean');
+        $this->form_validation->set_rules('areas', 'Specialist Areas', 'trim|required|min_length[10]|max_length[65535]|xss_clean');
+        // If there are errors go back to the edit profile view and displays the errors
+        if ($this->form_validation->run() == FALSE) {
+
+            $data['title'] = 'Edit Profile';
+            $data['result'] = NULL;
+
+            $this->load->view('templates/header', $data);
+            $this->load->view('edit_profile_view', $data);
+            $this->load->view('templates/footer');
+
+        } else {
+
+            $id = $this->input->post('profile_id');
+            $areas = $this->input->post('areas');
+            $description = $this->input->post('description');
+            $support = $this->input->post('support');
+            $data = array(
+                'profile_description' => $description,
+                'specialist_areas' => $areas,
+                'support_projects' => $support
+            );
+
+            $result = $this->edit_profile_model->editProfile($id, $data);
+
+            if ($result) {
+                $username = $this->session->userdata('username');
+                redirect('/profile/' . $username);
+            } else {
+                $username = $this->session->userdata('username');
+                redirect('/profile/' . $username);
+            }
+        }
+    }
+}

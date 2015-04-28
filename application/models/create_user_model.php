@@ -1,0 +1,92 @@
+<!--
+This Model is responsible to handling the creation of an user and storing the user information into the user session data
+-->
+<?php
+
+/**
+ * Class Create_user_model
+ */
+class Create_user_model extends CI_Model
+{
+
+    /**
+     *calls the constructor
+     */
+    function _construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * This functions inserts the user into the users table
+     *
+     * @return bool
+     */
+    public function create_user()
+    {
+        //grabs the values from the POST array
+        $first_name = $this->input->post('first_name');
+        $last_name = $this->input->post('last_name');
+        $username = $this->input->post('username');
+        $email = $this->input->post('email');
+        $password = $this->input->post('password');
+        $password = sha1($password);
+        //checks if the user is a lecturer or student by checking their email
+        if (fnmatch("*@edgehill.ac.uk", $email)) {
+            $lecturer = 1;
+        } else {
+            $lecturer = 0;
+        }
+
+        $data = array(
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'username' => $username,
+            'email' => $email,
+            'password' => $password,
+            'lecturer' => $lecturer
+        );
+        $this->db->insert('users',$data);
+        //If insertion is successfully returns true
+        if ($this->db->affected_rows() === 1) {
+            //passes the variables to the session function
+            $this->session_data($first_name, $last_name, $username, $email, $lecturer);
+
+            return $username;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Sets the user data into the session data
+     *
+     * @param $first_name
+     * @param $last_name
+     * @param $username
+     * @param $email
+     * @param $lecturer
+     */
+    public function session_data($first_name, $last_name, $username, $email, $lecturer)
+    {
+
+        $this->db->select('user_id');
+        $this->db->from('users');
+        $this->db->where('username', $username);
+        $this->db->limit(1);
+        $result = $this->db->get();
+        $row = $result->row();
+
+        $session_data = array(
+            'user_id' => $row->user_id,
+            'username' => $username,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'email' => $email,
+            'lecturer' => $lecturer,
+            'loggedin' => 1,
+            'admin' => 0
+        );
+        $this->session->set_userdata($session_data);
+    }
+}

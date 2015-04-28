@@ -1,0 +1,93 @@
+<!--
+
+This Controller is available at index.php/users
+
+This Controllers is responsible to allow administrator to change lecture permission
+
+-->
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * Class Users
+ */
+class Users extends CI_Controller
+{
+
+    /**
+     *loads the model globally, making it available in all functions, so there's no need to load the model multiple times
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->load->model('users_model');
+    }
+
+    /**
+     *Tells the controller what views to load when this controller is accessed
+     */
+    public function index()
+    {
+        $admin = $this->session->userdata('admin');
+        //checks if the user is admin, if it isn't deny access
+        if($admin){
+
+            $data['title'] = 'Users';
+            //gets all the users from the db
+            $data['users'] = $this->users_model->getUsers();
+
+            $this->load->view('templates/header', $data);
+            $this->load->view('users_view', $data);
+            $this->load->view('templates/footer');
+        }else{
+            $data['title'] = 'Access Denied';
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('access_denied_view');
+            $this->load->view('templates/footer');
+        }
+    }
+
+    /**
+     *This functions changes a student account to a lecturer account
+     */
+    public function changeLecturer()
+    {
+        $admin = $this->session->userdata('admin');
+        //checks if the user is admin, if it isn't deny access
+        if($admin){
+            //gets the user id from the url
+            $user_id = $this->uri->segment(3);
+            //gets the account type from the url
+            $lecturer = $this->uri->segment(4);
+
+            if ($lecturer == 0) {
+
+                $data = array(
+                    'lecturer' => 1
+                );
+
+            } else {
+
+                $data = array(
+                    'lecturer' => 0
+                );
+            }
+            //sends the data to the database to be updated
+            $result = $this->users_model->changePermission($user_id, $data);
+            //redirect the admin to the users page
+            if ($result) {
+                redirect('/users/');
+            } else {
+                redirect('/users/');
+            }
+        }else{
+            $data['title'] = 'Access Denied';
+
+            $this->load->view('templates/header_js', $data);
+            $this->load->view('access_denied_view');
+            $this->load->view('templates/footer');
+        }
+
+    }
+}

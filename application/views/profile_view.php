@@ -1,0 +1,118 @@
+<!--  This is the body view of profile page, different contents are shown to admin, students and lecturers   -->
+<div class="container">
+    <div class="page-header">
+        <h1>My Profile</h1>
+    </div>
+</div>
+<div class="container">
+    <?php
+
+    if(isset($alert)){
+        echo '<div class="alert alert-success alert-dismissible" role="alert">';
+        echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+        echo '<p>' . $alert . '</p>';
+        echo '</div>';
+    }
+
+    if(isset($insert_error)){
+        echo '<div class="alert alert-danger alert-dismissible" role="alert">';
+        echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+        echo '<p>' . $insert_error . '</p>';
+        echo '</div>';
+    }
+
+    $username = $this->session->userdata('username');
+    $logged_in = $this->session->userdata('loggedin');
+    $lecturer = $this->session->userdata('lecturer');
+    $administrator = $this->session->userdata('admin');
+
+    if ($logged_in) {
+
+        echo '<aside id="aside_profile" class="float-left">';
+        echo "Welcome back " . $username . "!";
+        echo '<br />';
+
+        //if user is administrator
+        if ($administrator) {
+
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/users">Users</a></p>';
+
+            // if user is a lecturer
+        } elseif ($lecturer) {
+            //Checks if the user has an profile image as .jpg or png, if there's no profile picture, displays the default one
+            if (file_exists("uploads/" . $username . ".jpg")) {
+                echo '<img height="150" width="150" src="' . base_url() . 'uploads/' . $username . '.jpg">';
+            } elseif (file_exists("uploads/" . $username . ".png")) {
+                echo '<img height="150" width="150" src="' . base_url() . 'uploads/' . $username . '.png">';
+            } else {
+                echo '<img height="150" width="150" src="' . base_url() . 'uploads/no_profile_picture.jpg">';
+            }
+            ?>
+            <?php echo form_open_multipart('createProfile/do_upload');?>
+            <!--     style in place so "No file chosen" text isn't showed when there's no file,
+            once a file is chosen, it updates to normal width to show the file name    -->
+            <input type="file" name="userfile" style="width:87px;" onchange="this.style.width = '100%';"/>
+            <br />
+            <input class="btn btn-danger"  type="submit" value="Change Profile Picture" />
+            </form>
+            <br />
+            <?php
+            //displays the uploading error message
+            if (isset($error)) {
+                echo $this->upload->display_errors();
+            }
+            ?>
+
+            <?php
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/createProposal">Create Proposal</a></p>';
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/createSummary">Create Past Project Summary</a></p>';
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/myProposals">My Proposals</a></p>';
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/MySummaries">My Summaries</a></p>';
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/receivedProposals">Received proposals</a></p>';
+            //If Lecturer has created a Profile Result Will return True otherwise it will return FALSE
+            if ($result) {
+                echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/editProfile">Edit profile</a></p>';
+            } else {
+                echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/createProfile">Create profile</a></p>';
+            }
+
+            echo '<br>';
+            echo '</aside>';
+            echo '<section id="lecturer_profile" class="float-right">';
+            //If Lecturer has created a Profile Result Will return True otherwise it will return FALSE
+            if ($result) {
+                foreach ($result as $profile) {
+                    echo '<h1>Lecturer Information</h1>';
+                    echo '<p>' . $profile->profile_description . '</p>';
+                    echo '<br>';
+                    echo '<h1>Specialist Areas</h1>';
+                    echo '<p>' . $profile->specialist_areas . '</p>';
+                    echo '<br>';
+                    echo '<p><strong>Project Support: </strong> ' . $profile->support_projects . '</p>';
+                    echo '<br>';
+
+                }
+            } else {
+                echo '<p>Please create a profile so students can browse your profile</p>';
+            }
+            echo '<br />';
+            echo '</section>';
+            echo '<br />';
+
+
+        } else {
+            //if user is a student
+            echo '<p><a class="btn btn-primary" href="' . base_url() . 'index.php/studentProposal">Submit a proposal</a></p>';
+            echo '</aside>';
+            echo '<br />';
+        }
+    }
+    else{
+        redirect('/login');
+    }
+    ?>
+</div>
+<br>
+
+
+

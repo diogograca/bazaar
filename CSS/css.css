@@ -1,0 +1,128 @@
+*{
+    margin: 0px;
+    padding: 0px;
+}
+html{
+    height: 100%;
+}
+body{
+    width: 100%;
+    height: 100%;
+    font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
+    padding-bottom: 70px;
+}
+
+article{
+    width: 75%;
+    margin: 0px auto 20px auto;
+
+}
+
+legend{
+    text-align: center;
+}
+#wrapper{
+    min-height: 100%;
+    position: relative;
+    overflow: scroll;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#out_nav{
+    width: 100%;
+    height: 50px;
+    background-color: red;
+    padding: 10px 0px 0px 0px;
+}
+
+#inner_nav{
+    width: 75%;
+    height: 50px;
+    margin: 0px auto;
+    text-align: center;
+}
+
+#search_bar{
+    width: 100%;
+    height: 20px;
+}
+
+#main_footer{
+    height: 50px;
+    width: 100%;
+    background-color: red;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#register_form{
+    min-width: 200px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#pagination{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#aside_profile{
+    width: 30%;
+    min-width: 200px;
+    margin-bottom: 50px;
+}
+#lecturer_profile{
+    width: 65%;
+    min-width: 250px;
+}
+
+.lecturer, .proposal{
+    margin-bottom: 35px;
+}
+
+
+/* miscellaneous */
+
+.float-right{
+    float: right;
+}
+
+.float-left{
+    float: left;
+}
+
+.proposal:hover {
+    background: #f6f6f6;
+}
+
+.lecturer:hover {
+    background: #f6f6f6;
+}
+
+.text-center{
+    text-align: center;
+}
+
+.clear-both{
+    clear: both;
+}
+
+.pointer{
+    cursor: pointer;
+}
+
+.iframe{
+    border: solid;
+    border-color: #000000;
+    width:700px;
+    min-height: 300px
+}
+
+.display-none{
+    display: none;
+}
